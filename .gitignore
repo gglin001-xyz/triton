@@ -1,3 +1,8 @@
+llvm-triton
+# pixi environments
+.pixi/*
+!.pixi/config.toml
+
 # Triton builds
 build/
 build-*/

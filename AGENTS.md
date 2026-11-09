@@ -25,3 +25,8 @@
 ## Lowering Guidelines
 - Triton IR uses fixed-width integer types, not MLIR's `index` type. Do not report missing `index` support as a Triton bug.
 - Lowerings must inspect only the operation they lower. Do not inspect other operations or follow loop-carried values; perform cross-operation reasoning in a separate analysis or transformation pass.
+
+## Local Pixi Development
+
+- Follow [pixi.md](pixi.md) for local setup, builds, tests, and the offline IR dump demo. Use Pixi and the current worktree's `.venv` for all local tests.
+- For this local workflow, the Pixi commands in `pixi.md` take precedence over the upstream build commands above. Rebuild native/compiler changes with `pixi run build`; Python-only changes need no native rebuild. Keep CMake builds separate from Python installation.

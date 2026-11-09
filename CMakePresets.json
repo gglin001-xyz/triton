@@ -1,0 +1,41 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 29,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "llvm-triton",
+      "displayName": "Development build with local llvm-triton",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/llvm-triton",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "TritonRelBuildWithAsserts",
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++",
+        "CMAKE_SYSROOT": "/",
+        "CMAKE_LINKER_TYPE": "MOLD",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+        "CMAKE_LIBRARY_OUTPUT_DIRECTORY": "${sourceDir}/python/triton/_C",
+        "LLVM_SYSPATH": "${sourceDir}/llvm-triton/llvm-project/build",
+        "TRITON_CACHE_PATH": "${sourceDir}/build/deps",
+        "TRITON_WHEEL_DIR": "${sourceDir}/python/triton",
+        "TRITON_VERSION": "3.9.0",
+        "TRITON_BUILD_PYTHON_MODULE": true,
+        "TRITON_STABLE_ABI": true,
+        "TRITON_CODEGEN_BACKENDS": "nvidia;amd",
+        "TRITON_BUILD_PROTON": false,
+        "TRITON_BUILD_UT": false
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "llvm-triton",
+      "configurePreset": "llvm-triton",
+      "jobs": 64
+    }
+  ]
+}

@@ -227,6 +227,19 @@ class CMakeBuild(build_ext):
         build_ext.finalize_options(self)
 
     def run(self):
+        if check_env_flag("TRITON_SKIP_BUILD"):
+            from importlib.machinery import EXTENSION_SUFFIXES
+
+            if not (self.inplace or getattr(self, "editable_mode", False)):
+                raise RuntimeError("TRITON_SKIP_BUILD supports editable installs only; use pip install -e .")
+            extension_dir = Path(self.base_dir) / "python" / "triton" / "_C"
+            if not any((extension_dir / f"libtriton{suffix}").is_file() for suffix in EXTENSION_SUFFIXES):
+                raise RuntimeError("TRITON_SKIP_BUILD requires a prebuilt libtriton in python/triton/_C; "
+                                   "build it with CMake first using the same Python environment.")
+            # CMake already wrote the extension into the source package. Do not
+            # report the placeholder CMakeExtension as a setuptools output.
+            self.extensions = []
+            return
         try:
             out = subprocess.check_output(["cmake", "--version"])
         except OSError:

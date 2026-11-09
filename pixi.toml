@@ -1,0 +1,53 @@
+[workspace]
+authors = ["Allen Guo <guosonglin001@gmail.com>"]
+channels = ["conda-forge"]
+name = "triton"
+platforms = ["linux-64"]
+version = "0.1.0"
+
+[tasks]
+build = { cmd = "cmake --build --preset llvm-triton", description = "Build native Triton with CMake" }
+install = { cmd = "uv run --no-project --python .venv/bin/python python -m pip install -e . --no-build-isolation --no-deps", env = { TRITON_SKIP_BUILD = "1", TRITON_BUILD_PROTON = "OFF" }, description = "Install Python editable links using the prebuilt native extension" }
+demo = { cmd = "mkdir -p build/runtime && uv run --no-project --python .venv/bin/python python examples/dump_kernel_ir.py --output build/runtime/demo", env = { CUDA_VISIBLE_DEVICES = "", TRITON_KERNEL_DUMP = "1", MLIR_ENABLE_DUMP = "1", MLIR_DUMP_PATH = "$PIXI_PROJECT_ROOT/build/runtime/passes.mlir" }, description = "Dump vector-add stages and MLIR passes without a GPU" }
+
+[tasks.venv]
+description = "Create this worktree's Python environment and install development dependencies"
+cmd = '''bash -eu -c '
+if [ ! -d .venv ]; then
+  uv venv --no-project --seed --python "$CONDA_PREFIX/bin/python" .venv
+fi
+uv pip install --python .venv/bin/python -r python/requirements.txt -r python/test-requirements.txt
+uv pip install --python .venv/bin/python --torch-backend=cpu torch
+'
+'''
+
+[tasks.configure]
+description = "Configure the native build against the prebuilt llvm-triton dependency"
+cmd = '''bash -eu -c '
+llvm_path="${LLVM_SYSPATH:-$PIXI_PROJECT_ROOT/llvm-triton/llvm-project/build}"
+if [ -z "${LLVM_SYSPATH:-}" ] && [ ! -d "$llvm_path" ]; then
+  llvm_path="$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")/llvm-triton/llvm-project/build"
+fi
+cmake --preset llvm-triton -DPython3_EXECUTABLE="$PIXI_PROJECT_ROOT/.venv/bin/python" -DLLVM_SYSPATH="$llvm_path"
+'
+'''
+
+[dependencies]
+python = "3.14.*"
+uv = ">=0.8,<1"
+cmake = ">=3.29,<4"
+ninja = ">=1.11,<2"
+clang = ">=20,<24"
+clangxx = ">=20,<24"
+mold = ">=2,<3"
+git = ">=2.31,<3"
+
+[activation.env]
+PYTHONNOUSERSITE = "1"
+PYTHONPATH = ""
+UV_NO_PROJECT = "1"
+TRITON_HOME = "$PIXI_PROJECT_ROOT/build/runtime"
+TRITON_CACHE_DIR = "$PIXI_PROJECT_ROOT/build/runtime/cache"
+TRITON_DUMP_DIR = "$PIXI_PROJECT_ROOT/build/runtime/dump"
+TRITON_OVERRIDE_DIR = "$PIXI_PROJECT_ROOT/build/runtime/override"
+TRITON_BUILD_DIR = "$PIXI_PROJECT_ROOT/build/llvm-triton"
